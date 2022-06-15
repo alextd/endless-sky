@@ -7,7 +7,7 @@ Foundation, either version 3 of the License, or (at your option) any later versi
 
 Endless Sky is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
@@ -180,13 +180,13 @@ void TradingPanel::Draw()
 				font.Draw(profit, Point(MIN_X + PROFIT_X, y), color);
 				showProfit = true;
 			}
-			int level = (price - commodity.low);
-			if(level < 0)
-				level = 0;
-			else if(level >= (commodity.high - commodity.low))
-				level = 4;
-			else
-				level = (5 * level) / (commodity.high - commodity.low);
+				int level = (price - commodity.low);
+				if(level < 0)
+					level = 0;
+				else if(level >= (commodity.high - commodity.low))
+					level = 4;
+				else
+					level = (5 * level) / (commodity.high - commodity.low);
 			font.Draw(TRADE_LEVEL[level], Point(MIN_X + LEVEL_X, y), color);
 
 			font.Draw("[buy]", Point(MIN_X + BUY_X, y), color);
@@ -236,23 +236,7 @@ bool TradingPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 		Buy(1000000000);
 	else if(key == 'S' || (key == 's' && (mod & KMOD_SHIFT)))
 	{
-		for(const auto &it : player.Cargo().Commodities())
-		{
-			const string &commodity = it.first;
-			const int64_t &amount = it.second;
-			int64_t price = system.Trade(commodity);
-			if(!price || !amount)
-				continue;
-
-			int64_t basis = player.GetBasis(commodity, -amount);
-			profit += amount * price + basis;
-			tonsSold += amount;
-
-			GameData::AddPurchase(system, commodity, -amount);
-			player.AdjustBasis(commodity, basis);
-			player.Accounts().AddCredits(amount * price);
-			player.Cargo().Remove(commodity, amount);
-		}
+		player.SellCommodities(profit, tonsSold);
 		int day = player.GetDate().DaysSinceEpoch();
 		for(const auto &it : player.Cargo().Outfits())
 		{
