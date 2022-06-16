@@ -201,7 +201,7 @@ public:
 	// Distribute cargo to local ships. Returns a reference to the player's cargo.
 	const CargoHold &DistributeCargo();
 	// Auto-purchase and sell commodities
-	void BuyBestTrade(const System *destination);
+	void BuyBestTrade(const System *destination, bool includeFlagship = false);
 	void SellCommodities(int64_t& profit, int& tonsSold);
 
 	// Get or add to pilot's playtime.
