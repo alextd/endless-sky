@@ -64,23 +64,6 @@ TradingPanel::TradingPanel(PlayerInfo &player)
 
 
 
-TradingPanel::~TradingPanel()
-{
-	if(profit)
-	{
-		string message = "You sold " + Format::CargoString(tonsSold, "cargo ");
-
-		if(profit < 0)
-			message += "at a loss of " + Format::CreditString(-profit) + ".";
-		else
-			message += "for a total profit of " + Format::CreditString(profit) + ".";
-
-		Messages::Add(message, Messages::Importance::High);
-	}
-}
-
-
-
 void TradingPanel::Step()
 {
 	DoHelp("trading");
@@ -236,7 +219,7 @@ bool TradingPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 		Buy(1000000000);
 	else if(key == 'S' || (key == 's' && (mod & KMOD_SHIFT)))
 	{
-		player.SellCommodities(profit, tonsSold);
+		player.SellCommodities();
 		int day = player.GetDate().DaysSinceEpoch();
 		for(const auto &it : player.Cargo().Outfits())
 		{
@@ -246,8 +229,7 @@ bool TradingPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 				continue;
 
 			int64_t value = player.FleetDepreciation().Value(outfit, day, amount);
-			profit += value;
-			tonsSold += static_cast<int>(amount * outfit->Mass());
+			player.AddProfit(value, static_cast<int>(amount * outfit->Mass()));
 
 			player.AddStock(outfit, amount);
 			player.Accounts().AddCredits(value);
@@ -312,8 +294,7 @@ void TradingPanel::Buy(int64_t amount)
 
 		int64_t basis = player.GetBasis(type, amount);
 		player.AdjustBasis(type, basis);
-		profit += -amount * price + basis;
-		tonsSold += -amount;
+		player.AddProfit(-amount * price + basis, -amount);
 	}
 	amount = player.Cargo().Add(type, amount);
 	player.Accounts().AddCredits(-amount * price);

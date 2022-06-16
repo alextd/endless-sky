@@ -76,6 +76,7 @@ private:
 private:
 	int governmentY = 0;
 	int tradeY = 0;
+	int autoBuyY = 0;
 
 	// Which panel is being hovered over and should be affected by up and down keys.
 	bool isPlanetViewSelected = false;
