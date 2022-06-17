@@ -201,6 +201,7 @@ public:
 	// Distribute cargo to local ships. Returns a reference to the player's cargo.
 	const CargoHold &DistributeCargo();
 	// Auto-purchase and sell commodities
+	bool CanTrade();
 	int HasBestTrade(const System *destination);
 	void BuyBestTrade(const System &destination, bool includeFlagship = false, bool sellFirst = true);
 	std::string BestTradeType(const System &destination);
