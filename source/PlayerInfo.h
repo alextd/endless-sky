@@ -200,10 +200,17 @@ public:
 	void PoolCargo();
 	// Distribute cargo to local ships. Returns a reference to the player's cargo.
 	const CargoHold &DistributeCargo();
-	// Auto-purchase and sell commodities
+
+	// Auto-purchase and sell commodities.
+	// Check if the player is on a planet with commodity trade available.
 	bool CanTrade();
-	int HasBestTrade(const System *destination);
-	void BuyBestTrade(const System &destination, bool includeFlagship = false, bool sellFirst = true);
+	// NONE: Can't trade, or cargo is already full with best trade
+	// FLEET: The fleet has cargo space available
+	// SHIP: The fleet is full, but the flagship has room.
+	// POOR: You can't afford to buy a ton.
+	enum BestTradeState {NONE, FLEET, SHIP, POOR};
+	BestTradeState GetBestTradeState(const System *destination);
+	void BuyBestTrade(const System &destination, BestTradeState state = FLEET, bool sellFirst = true);
 	std::string BestTradeType(const System &destination);
 	void MessageAutoTrade();
 	void SellCommodities(const std::string& exclude = "");
