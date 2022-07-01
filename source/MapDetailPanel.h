@@ -36,7 +36,7 @@ class System;
 // click on a planet to view its description.
 class MapDetailPanel : public MapPanel {
 public:
-	explicit MapDetailPanel(PlayerInfo &player, const System *system = nullptr);
+	explicit MapDetailPanel(PlayerInfo &player, const System *system = nullptr, bool canTrade = true);
 	explicit MapDetailPanel(const MapPanel &panel);
 	~MapDetailPanel();
 
@@ -94,6 +94,9 @@ private:
 
 	static double planetPanelHeight;
 	std::vector<MapPlanetCard> planetCards;
+	// Whether to show the auto-trade button
+	bool CanTrade();
+
 	// Vector offsets from the center of the "orbits" UI.
 	std::map<const Planet *, Point> planets;
 };
