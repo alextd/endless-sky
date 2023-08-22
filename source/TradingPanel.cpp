@@ -7,7 +7,7 @@ Foundation, either version 3 of the License, or (at your option) any later versi
 
 Endless Sky is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
@@ -163,13 +163,13 @@ void TradingPanel::Draw()
 				font.Draw(profit, Point(MIN_X + PROFIT_X, y), color);
 				showProfit = true;
 			}
-				int level = (price - commodity.low);
-				if(level < 0)
-					level = 0;
-				else if(level >= (commodity.high - commodity.low))
-					level = 4;
-				else
-					level = (5 * level) / (commodity.high - commodity.low);
+			int level = (price - commodity.low);
+			if(level < 0)
+				level = 0;
+			else if(level >= (commodity.high - commodity.low))
+				level = 4;
+			else
+				level = (5 * level) / (commodity.high - commodity.low);
 			font.Draw(TRADE_LEVEL[level], Point(MIN_X + LEVEL_X, y), color);
 
 			font.Draw("[buy]", Point(MIN_X + BUY_X, y), color);

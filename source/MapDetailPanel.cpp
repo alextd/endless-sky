@@ -753,6 +753,10 @@ void MapDetailPanel::DrawInfo()
 	const double textMargin = mapInterface->GetValue("text margin");
 	uiPoint = Point(Screen::Left() + textMargin, Screen::Bottom() - bottomGovY);
 
+	bool canTrade = CanTrade();
+	if (canTrade)
+		uiPoint.Y() -= 60;
+
 	// Draw the information for the government of this system at the top of the trade sprite.
 	SpriteShader::Draw(systemSprite, uiPoint + Point(systemSprite->Width() / 2. - textMargin, 0.));
 
@@ -772,6 +776,8 @@ void MapDetailPanel::DrawInfo()
 
 	const double tradeHeight = mapInterface->GetValue("trade height");
 	uiPoint = Point(Screen::Left() + startingX, Screen::Bottom() - tradeHeight);
+	if (canTrade)
+		uiPoint.Y() -= 60;
 
 	// Trade sprite goes after at the bottom.
 	const Sprite *tradeSprite = SpriteSet::Get("ui/map trade");

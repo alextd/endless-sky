@@ -7,7 +7,7 @@ Foundation, either version 3 of the License, or (at your option) any later versi
 
 Endless Sky is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
@@ -502,12 +502,12 @@ void PlayerInfo::Save() const
 				const string toMove = rootPrevious + to_string(i) + ".txt";
 				if(Files::Exists(toMove))
 					Files::Move(toMove, rootPrevious + to_string(i + 1) + ".txt");
-		}
+			}
 			if(Files::Exists(filePath))
 				Files::Move(filePath, rootPrevious + "1.txt");
 			if(planet->HasSpaceport())
 				Save(rootPrevious + "spaceport.txt");
-	}
+		}
 	}
 
 	Save(filePath);
@@ -1003,7 +1003,7 @@ const shared_ptr<Ship> &PlayerInfo::FlagshipPtr()
 		if(planet)
 			clearance = planet->CanLand() || HasClearance(*this, planet);
 		for(const shared_ptr<Ship> &it : ships)
-			{
+		{
 			if(it->IsParked())
 				continue;
 			if(it->GetSystem() != system)
@@ -1016,7 +1016,7 @@ const shared_ptr<Ship> &PlayerInfo::FlagshipPtr()
 				flagship = it;
 				break;
 			}
-	}
+		}
 	}
 
 	static const shared_ptr<Ship> empty;
@@ -1170,14 +1170,14 @@ void PlayerInfo::BuyShip(const Ship *model, const string &name)
 		accounts.AddCredits(-cost);
 		flagship.reset();
 
-			depreciation.Buy(*model, day, &stockDepreciation);
-			for(const auto &it : model->Outfits())
-				stock[it.first] -= it.second;
+		depreciation.Buy(*model, day, &stockDepreciation);
+		for(const auto &it : model->Outfits())
+			stock[it.first] -= it.second;
 
 		if(ships.back()->HasBays())
 			displayCarrierHelp = true;
-		}
 	}
+}
 
 
 
@@ -1348,7 +1348,7 @@ pair<double, double> PlayerInfo::RaidFleetFactors() const
 
 		attraction += ship->Attraction();
 		deterrence += ship->Deterrence();
-			}
+	}
 
 	return make_pair(attraction, deterrence);
 }
@@ -1516,13 +1516,13 @@ void PlayerInfo::Land(UI *ui)
 				const bool alreadyLanded = ship->GetPlanet() == planet;
 				if(alreadyLanded || planet->CanLand(*ship) || (clearance && planet->IsAccessible(ship.get())))
 				{
-				ship->Recharge(hasSpaceport);
-				if(!ship->GetPlanet())
-					ship->SetPlanet(planet);
-			}
+					ship->Recharge(hasSpaceport);
+					if(!ship->GetPlanet())
+						ship->SetPlanet(planet);
+				}
 				// Ships that cannot land with the flagship choose the most suitable planet
 				// in the system.
-			else
+				else
 				{
 					const StellarObject *landingObject = AI::FindLandingLocation(*ship);
 					const bool foundSpaceport = landingObject;
@@ -1667,7 +1667,7 @@ bool PlayerInfo::TakeOff(UI *ui, const bool distributeCargo)
 			}
 			else
 				ship->Recharge(hasSpaceport);
-			}
+		}
 
 	if(distributeCargo)
 		DistributeCargo();
@@ -1797,16 +1797,16 @@ bool PlayerInfo::TakeOff(UI *ui, const bool distributeCargo)
 			totalBasis += basis;
 		}
 		if(!planet->HasOutfitter())
-		for(const auto &outfit : cargo.Outfits())
-		{
-			// Compute the total value for each type of excess outfit.
-			if(!outfit.second)
-				continue;
-			int64_t cost = depreciation.Value(outfit.first, day, outfit.second);
-			for(int i = 0; i < outfit.second; ++i)
-				stockDepreciation.Buy(outfit.first, day, &depreciation);
-			income += cost;
-		}
+			for(const auto &outfit : cargo.Outfits())
+			{
+				// Compute the total value for each type of excess outfit.
+				if(!outfit.second)
+					continue;
+				int64_t cost = depreciation.Value(outfit.first, day, outfit.second);
+				for(int i = 0; i < outfit.second; ++i)
+					stockDepreciation.Buy(outfit.first, day, &depreciation);
+				income += cost;
+			}
 		else
 			for(const auto &outfit : cargo.Outfits())
 			{
@@ -1814,7 +1814,7 @@ bool PlayerInfo::TakeOff(UI *ui, const bool distributeCargo)
 				if(!outfit.second)
 					continue;
 				cargo.Transfer(outfit.first, outfit.second, *Storage(true));
-	}
+			}
 	}
 	accounts.AddCredits(income);
 	cargo.Clear();
@@ -1933,7 +1933,7 @@ PlayerInfo::BestTradeState PlayerInfo::GetBestTradeState(const System *destinati
 			// TODO: optionally skip bribeable planets for auto-buy
 			const string& lang = planet->GetGovernment()->Language();
 			if(planet->GetBribeFraction() &&
-				(lang.empty() || GetCondition("language: " + lang)))
+				(lang.empty() || conditions.Get("language: " + lang)))
 			{
 				landable = true;
 				break;
@@ -2549,7 +2549,7 @@ const ConditionsStore &PlayerInfo::Conditions() const
 const map<string, EsUuid> &PlayerInfo::GiftedShips() const
 {
 	return giftedShips;
-	}
+}
 
 
 
@@ -3407,7 +3407,7 @@ void PlayerInfo::RegisterDerivedConditions()
 	salaryIncomeProvider.SetHasFunction(salaryIncomeHasGetFun);
 	salaryIncomeProvider.SetGetFunction(salaryIncomeHasGetFun);
 	salaryIncomeProvider.SetSetFunction([this](const string &name, int64_t value) -> bool
-		{
+	{
 		accounts.SetSalaryIncome(name.substr(strlen("salary: ")), value);
 		return true;
 	});
@@ -3713,7 +3713,7 @@ void PlayerInfo::RegisterDerivedConditions()
 			auto it = planetaryStorage.find(planet);
 			if(it != planetaryStorage.end())
 				retVal += it->second.Get(outfit);
-	}
+		}
 		for(const shared_ptr<Ship> &ship : ships)
 		{
 			// Destroyed and parked ships aren't checked.
@@ -3769,7 +3769,7 @@ void PlayerInfo::RegisterDerivedConditions()
 					|| (!planet && ship->GetActualSystem() != system))
 				continue;
 			retVal += ship->OutfitCount(outfit);
-	}
+		}
 		return retVal;
 	});
 
@@ -3882,15 +3882,15 @@ void PlayerInfo::RegisterDerivedConditions()
 			auto it = planetaryStorage.find(planet);
 			return it != planetaryStorage.end() ? it->second.Get(outfit) : 0;
 		}
-	else
-	{
+		else
+		{
 			int64_t retVal = 0;
 			for(const StellarObject &object : system->Objects())
 			{
 				auto it = planetaryStorage.find(object.GetPlanet());
 				if(object.HasValidPlanet() && it != planetaryStorage.end())
 					retVal += it->second.Get(outfit);
-	}
+			}
 			return retVal;
 		}
 	});
@@ -4026,7 +4026,7 @@ void PlayerInfo::RegisterDerivedConditions()
 			Logger::LogError("Warning: System \"" + name.substr(strlen("hyperjumps to system: "))
 					+ "\" referred to in condition is not valid.");
 			return -1;
-}
+		}
 		return HyperspaceTravelDays(this->GetSystem(), system);
 	};
 	hyperjumpsToSystemProvider.SetGetFunction(hyperjumpsToSystemFun);
@@ -4194,7 +4194,7 @@ void PlayerInfo::CreateMissions()
 
 
 void PlayerInfo::SortAvailable()
-	{
+{
 	// Destinations: planets OR system. Only counting them, so the type doesn't matter.
 	set<const void *> destinations;
 	if(availableSortType == CONVENIENT)
@@ -4653,7 +4653,7 @@ void PlayerInfo::Save(DataWriter &out) const
 		{
 			for(const auto &it : giftedShips)
 				out.Write(it.first, it.second.ToString());
-			}
+		}
 		out.EndChild();
 	}
 
@@ -4766,7 +4766,7 @@ void PlayerInfo::Save(DataWriter &out) const
 		const auto &plugin = it.second;
 		if(plugin.IsValid() && plugin.enabled)
 			out.Write(plugin.name);
-}
+	}
 	out.EndChild();
 }
 
