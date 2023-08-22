@@ -209,20 +209,21 @@ void MissionPanel::Draw()
 	hoverSortCount += hoverSort >= 0 ? (hoverSortCount < HOVER_TIME) : (hoverSortCount ? -1 : 0);
 
 	Color routeColor(.2f, .1f, 0.f, 0.f);
-	const System *system = selectedSystem;
-	while(distance.Days(system) > 0)
+	const vector<const System *> plan = distance.Plan(*selectedSystem);
+	const System *prev = player.GetSystem();
+	for(auto it = plan.rbegin(); it != plan.rend(); ++it)
 	{
-		const System *next = distance.Route(system);
+		const System *next = *it;
 
-		Point from = Zoom() * (next->Position() + center);
-		Point to = Zoom() * (system->Position() + center);
+		Point from = Zoom() * (prev->Position() + center);
+		Point to = Zoom() * (next->Position() + center);
 		Point unit = (from - to).Unit() * 7.;
 		from -= unit;
 		to += unit;
 
 		LineShader::Draw(from, to, 5.f, routeColor);
 
-		system = next;
+		prev = next;
 	}
 
 	const Set<Color> &colors = GameData::Colors();
@@ -676,8 +677,8 @@ void MissionPanel::DrawSelectedSystem() const
 	auto it = find(plan.begin(), plan.end(), selectedSystem);
 	if(it != plan.end())
 		jumps = plan.end() - it;
-	else if(distance.HasRoute(selectedSystem))
-		jumps = distance.Days(selectedSystem);
+	else if(distance.HasRoute(*selectedSystem))
+		jumps = distance.Days(*selectedSystem);
 
 	if(jumps == 1)
 		text += " (1 jump away)";
