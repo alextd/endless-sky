@@ -1012,6 +1012,9 @@ void MissionPanel::Accept(bool force)
 			if(SelectNext(--it))
 				return;
 	}
+
+	if(availableIt != available.end())
+		CenterOnSystem(availableIt->Destination()->GetSystem());
 }
 
 
