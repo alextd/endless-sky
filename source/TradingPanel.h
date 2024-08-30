@@ -13,8 +13,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef TRADING_PANEL_H_
-#define TRADING_PANEL_H_
+#pragma once
 
 #include "Panel.h"
 
@@ -54,7 +53,3 @@ private:
 	// everything except outfits.
 	bool sellOutfits = false;
 };
-
-
-
-#endif

@@ -13,8 +13,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef ROUTE_PLAN_H_
-#define ROUTE_PLAN_H_
+#pragma once
 
 #include "RouteEdge.h"
 
@@ -32,9 +31,8 @@ class System;
 // and keeps only the route to that system.
 class RoutePlan {
 public:
-	explicit RoutePlan(const System &center, const System &destination);
-	explicit RoutePlan(const PlayerInfo &player, const System &center, const System &destination);
-	explicit RoutePlan(const Ship &ship, const System &destination);
+	explicit RoutePlan(const System &center, const System &destination, const PlayerInfo *player = nullptr);
+	explicit RoutePlan(const Ship &ship, const System &destination, const PlayerInfo *player = nullptr);
 
 	// Find out if the destination is reachable.
 	bool HasRoute() const;
@@ -50,15 +48,13 @@ public:
 	// Get the list of jumps + fuel to take to get to the destination.
 	std::vector<std::pair<const System *, int>> FuelCosts() const;
 
+
 private:
 	void Init(const DistanceMap &distance);
+
 
 private:
 	// The final planned route. plan.front() is the destination.
 	std::vector<std::pair<const System *, RouteEdge>> plan;
 	bool hasRoute = false;
 };
-
-
-
-#endif

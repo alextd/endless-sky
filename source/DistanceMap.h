@@ -13,8 +13,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef DISTANCE_MAP_H_
-#define DISTANCE_MAP_H_
+#pragma once
 
 #include "RouteEdge.h"
 #include "WormholeStrategy.h"
@@ -34,7 +33,7 @@ class System;
 // This is a map of shortest routes to all other systems from the given "center"
 // system. It also tracks how many days and fuel it takes to get there. Ships with
 // a hyperdrive travel using the "links" between systems. Ships with jump drives
-// can make use of those links, but can also travel to any system that's closeby.
+// can make use of those links, but can also travel to any system that's close by.
 // Wormholes can also be used by players or ships.
 class DistanceMap {
 public:
@@ -51,10 +50,6 @@ public:
 	// Optional arguments are as above.
 	explicit DistanceMap(const System *center, WormholeStrategy wormholeStrategy,
 			bool useJumpDrive, int maxSystems = -1, int maxDays = -1);
-	// Calculate the path for the given ship to get to the given system. The
-	// ship will use a jump drive or hyperdrive depending on what it has. The
-	// pathfinding will stop once a path to the destination is found.
-	DistanceMap(const Ship &ship, const System &destination);
 
 	// Find out if the given system is reachable.
 	bool HasRoute(const System &system) const;
@@ -67,12 +62,15 @@ public:
 
 
 private:
-	// With the optional destination, the pathfinding will stop once it finds the
-	// best path to it. You must use RoutePlan to set a destination.
-	explicit DistanceMap(const System &center, const System &destination);
-	// The center argument starts the path there instead of the player
-	// (e.g. appending a route to the end of a planned route).
-	explicit DistanceMap(const PlayerInfo &player, const System &center, const System &destination);
+	// To use DistanceMap with a destination, you must use RoutePlan as a wrapper,
+	// which uses these private constructors. The pathfinding will stop once it
+	// finds the best path to the destination. If a player is given, the path will
+	// only include systems that the player has visited.
+	explicit DistanceMap(const System &center, const System &destination, const PlayerInfo *player = nullptr);
+
+	// Calculate the path for the given ship to get to the given system. The
+	// ship will use a jump drive or hyperdrive depending on what it has.
+	explicit DistanceMap(const Ship &ship, const System &destination, const PlayerInfo *player = nullptr);
 
 	// Depending on the capabilities of the given ship, use hyperspace paths,
 	// jump drive paths, or both to find the shortest route. Bail out if the
@@ -114,10 +112,7 @@ private:
 	int jumpFuel = 0;
 	bool useWormholes = false;
 	double jumpRange = 0.;
+	const Ship *ship = nullptr;
 
 	friend class RoutePlan;
 };
-
-
-
-#endif

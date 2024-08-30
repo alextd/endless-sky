@@ -27,11 +27,11 @@ using namespace std;
 
 
 
-// Find paths to the given system. If the given maximum count is above zero,
+// Find paths from the given system. If the given maximum count is above zero,
 // it is a limit on how many systems should be returned. If it is below zero
 // it specifies the maximum distance away that paths should be found.
-DistanceMap::DistanceMap(const System *center, int maxCount, int maxDistance)
-	: DistanceMap(center, WormholeStrategy::NONE, false, maxCount, maxDistance)
+DistanceMap::DistanceMap(const System *center, int maxSystems, int maxDays)
+	: DistanceMap(center, WormholeStrategy::NONE, false, maxSystems, maxDays)
 {
 }
 
@@ -49,7 +49,8 @@ DistanceMap::DistanceMap(const System *center, WormholeStrategy wormholeStrategy
 
 
 
-// If a player is given with no center, the map will start from the player's system.
+// Constructor that uses PlayerInfo to determine the path.
+// If no center system is given, the map will start from the player's system.
 // Pathfinding will only use hyperspace paths known to the player; that is,
 // one end of the path has been visited. Also, if the ship has a jump drive
 // or wormhole access, the route will make use of it.
@@ -61,10 +62,8 @@ DistanceMap::DistanceMap(const PlayerInfo &player, const System *center)
 	if(!flagship)
 		return;
 
-	if (center)
-	{
+	if(center)
 		this->center = center;
-	}
 	else if(flagship->IsEnteringHyperspace())
 		this->center = flagship->GetTargetSystem();
 	else
@@ -75,28 +74,25 @@ DistanceMap::DistanceMap(const PlayerInfo &player, const System *center)
 }
 
 
-// Private constructors with a destination for use by RoutePlan
-DistanceMap::DistanceMap(const System &center, const System &destination)
-	: center(&center), destination(&destination)
+
+// Calculate the path for the given ship to get to the given system. The
+// ship will use a jump drive or hyperdrive depending on what it has. The
+// pathfinding will stop once a path to the destination is found.
+// If a player is given, the path will only include systems that the
+// player has visited.
+DistanceMap::DistanceMap(const System &center, const System &destination, const PlayerInfo *player)
+	: player(player), center(&center), destination(&destination), useWormholes(true)
 {
-	Init();
+	if(player)
+		Init(player->Flagship());
+	else
+		Init();
 }
 
 
 
-DistanceMap::DistanceMap(const PlayerInfo &player, const System &center, const System &destination)
-	: player(&player), center(&center), destination(&destination), useWormholes(true)
-{
-	if(!player.Flagship())
-		return;
-
-	Init(player.Flagship());
-}
-
-
-
-DistanceMap::DistanceMap(const Ship &ship, const System &destination)
-	: center(ship.GetSystem()), destination(&destination), useWormholes(true)
+DistanceMap::DistanceMap(const Ship &ship, const System &destination, const PlayerInfo *player)
+	: player(player), center(ship.GetSystem()), destination(&destination), useWormholes(true)
 {
 	Init(&ship);
 }
@@ -104,17 +100,17 @@ DistanceMap::DistanceMap(const Ship &ship, const System &destination)
 
 
 // Find out if the given system is reachable
-bool DistanceMap::HasRoute(const System &system) const
+bool DistanceMap::HasRoute(const System &target) const
 {
-	return route.count(&system);
+	return route.contains(&target);
 }
 
 
 
 // Find out how many days away the given system is.
-int DistanceMap::Days(const System &system) const
+int DistanceMap::Days(const System &target) const
 {
-	auto it = route.find(&system);
+	auto it = route.find(&target);
 	return (it == route.end() ? -1 : it->second.days);
 }
 
@@ -132,13 +128,13 @@ set<const System *> DistanceMap::Systems() const
 
 
 // Get the planned route from center to this system.
-vector<const System *> DistanceMap::Plan(const System &system) const
+vector<const System *> DistanceMap::Plan(const System &target) const
 {
 	auto plan = vector<const System *>{};
-	if(!HasRoute(system))
+	if(!HasRoute(target))
 		return plan;
 
-	const System *nextStep = &system;
+	const System *nextStep = &target;
 	while(nextStep != center)
 	{
 		plan.push_back(nextStep);
@@ -154,7 +150,7 @@ vector<const System *> DistanceMap::Plan(const System &system) const
 // source system or the maximum count is reached.
 void DistanceMap::Init(const Ship *ship)
 {
-	if(!center || center == destination)
+	if(!center || (ship && ship->IsRestrictedFrom(*center)) || center == destination)
 		return;
 
 	// To get to the starting point, there is no previous system,
@@ -167,6 +163,7 @@ void DistanceMap::Init(const Ship *ship)
 	// DistanceMap class defaults assume hyperdrive capability only.
 	if(ship)
 	{
+		this->ship = ship;
 		hyperspaceFuel = ship->JumpNavigation().HyperdriveFuel();
 		// Todo: consider outfit "jump distance" at each link to find if more fuel is needed
 		// by a second jump drive outfit with more range and cost via JumpDriveFuel(to).
@@ -194,7 +191,7 @@ void DistanceMap::Init(const Ship *ship)
 		}
 	}
 
-	// Find the route with lowest fuel use. If multiple routes use the same fuel,
+	// Find the route with the lowest fuel use. If multiple routes use the same fuel,
 	// choose the one with the fewest jumps (i.e. using jump drive rather than
 	// hyperdrive). If multiple routes have the same fuel and the same number of
 	// jumps, break the tie by using how "dangerous" the route is.
@@ -234,28 +231,29 @@ void DistanceMap::Init(const Ship *ship)
 		// Check for wormholes (which cost zero fuel). Wormhole travel should
 		// not be included in Local Maps or mission itineraries.
 		if(wormholeStrategy != WormholeStrategy::NONE)
-			for(const StellarObject &object : nextEdge.prev->Objects())
+			for(const StellarObject &object : currentSystem->Objects())
 				if(object.HasSprite() && object.HasValidPlanet() && object.GetPlanet()->IsWormhole()
 					&& (object.GetPlanet()->IsUnrestricted() || wormholeStrategy == WormholeStrategy::ALL))
 				{
 					// If we're seeking a path toward a "source," travel through
 					// wormholes in the reverse of the normal direction.
 					const System &link = center ?
-						object.GetPlanet()->GetWormhole()->WormholeSource(*nextEdge.prev) :
-						object.GetPlanet()->GetWormhole()->WormholeDestination(*nextEdge.prev);
+						object.GetPlanet()->GetWormhole()->WormholeSource(*currentSystem) :
+						object.GetPlanet()->GetWormhole()->WormholeDestination(*currentSystem);
 					if(HasBetter(link, nextEdge))
 						continue;
 
 					// In order to plan travel through a wormhole, it must be
 					// "accessible" to the ship, and you must have visited
-					// the wormhole and both endpoint systems. (If this is a
-					// multi-stop wormhole, you may know about some paths that
-					// it takes but not others.)
-					if(ship && !object.GetPlanet()->IsAccessible(ship))
+					// the wormhole and both endpoint systems must be viewable.
+					// (If this is a multi-stop wormhole, you may know about
+					// some paths that it takes but not others.)
+					if(ship && (!object.GetPlanet()->IsAccessible(ship) ||
+							ship->IsRestrictedFrom(*object.GetPlanet())))
 						continue;
 					if(player && !player->HasVisited(*object.GetPlanet()))
 						continue;
-					if(player && !(player->HasVisited(*currentSystem) && player->HasVisited(link)))
+					if(player && !(player->CanView(*currentSystem) && player->CanView(link)))
 						continue;
 
 					Add(link, nextEdge);
@@ -324,12 +322,12 @@ void DistanceMap::Add(const System &to, RouteEdge edge)
 
 
 // Check whether the given link is travelable. If no player was given in the
-// constructor then this is always true; otherwise, the player must know
+// constructor then this depends on travel restrictions; otherwise, the player must know
 // that the given link exists.
 bool DistanceMap::CheckLink(const System &from, const System &to, bool useJump) const
 {
 	if(!player)
-		return true;
+		return !ship || !ship->IsRestrictedFrom(to);
 
 	if(!player->HasSeen(to))
 		return false;
@@ -343,5 +341,5 @@ bool DistanceMap::CheckLink(const System &from, const System &to, bool useJump) 
 	if(useJump && from.Position().Distance(to.Position()) <= distance)
 		return true;
 
-	return (player->HasVisited(from) || player->HasVisited(to));
+	return (player->CanView(from) || player->CanView(to));
 }
