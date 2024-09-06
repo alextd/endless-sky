@@ -894,8 +894,6 @@ void MapDetailPanel::DrawInfo()
 
 
 	// Planet description when selected
-	if(selectedPlanet && !selectedPlanet->Description().empty()
-			&& player.HasVisited(*selectedPlanet) && !selectedPlanet->IsWormhole())
 	if(selectedPlanet && !selectedPlanet->Description().IsEmptyFor(player.Conditions())
 			&& player.HasVisited(*selectedPlanet) && !selectedPlanet->IsWormhole())
 	{
